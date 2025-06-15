@@ -1,0 +1,31 @@
+name: Run Python Files
+
+on:
+  push:
+    paths:
+      - '**.py'
+      - 'requirements.txt'
+
+jobs:
+  run-python-code:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Run all Python scripts
+      run: |
+        for file in *.py; do
+          echo "Running $file"
+          python "$file"
+        done
