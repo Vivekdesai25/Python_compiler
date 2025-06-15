@@ -14,7 +14,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
       with:
-        fetch-depth: 0  # 🔑 Needed for full git history so git diff works
+        fetch-depth: 2  # Fetch 2 commits for diff to work
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -26,20 +26,19 @@ jobs:
         pip install -r requirements.txt
 
     - name: Get changed Python files
-      id: changed
+      id: detect
       run: |
-        echo "Detecting changed .py files..."
-        git fetch origin main --depth=1
-        git diff --name-only origin/main HEAD | grep '\.py$' > changed.txt || true
+        echo "📁 Detecting changed .py files..."
+        git diff --name-only HEAD^ HEAD | grep '\.py$' > changed.txt || true
 
-        echo "Files found:"
+        echo "📝 Files found:"
         cat changed.txt || echo "No Python files found."
 
     - name: Run changed Python files
       run: |
         if [ -s changed.txt ]; then
           while read file; do
-            echo "➡️ Running $file"
+            echo "🚀 Running $file"
             echo "-----------------------------"
             python "$file"
             echo "-----------------------------"
