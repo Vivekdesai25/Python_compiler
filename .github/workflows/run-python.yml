@@ -1,4 +1,4 @@
-name: Run All Changed Python Files
+name: Run Changed Python Files
 
 on:
   push:
@@ -7,14 +7,14 @@ on:
       - 'requirements.txt'
 
 jobs:
-  run-changed-files:
+  run-python-files:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
       with:
-        fetch-depth: 2  # Important! Enables git diff to work
+        fetch-depth: 0  # 🔑 Needed for full git history so git diff works
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -22,19 +22,28 @@ jobs:
         python-version: '3.10'
 
     - name: Install dependencies
-      run: pip install -r requirements.txt
-
-    - name: Find and run changed Python files
       run: |
-        echo "Changed Python files:"
-        CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep '\.py$' || true)
+        pip install -r requirements.txt
 
-        if [ -z "$CHANGED_FILES" ]; then
-          echo "No .py files changed."
-        else
-          echo "$CHANGED_FILES" | while read file; do
-            echo "Running $file"
+    - name: Get changed Python files
+      id: changed
+      run: |
+        echo "Detecting changed .py files..."
+        git fetch origin main --depth=1
+        git diff --name-only origin/main HEAD | grep '\.py$' > changed.txt || true
+
+        echo "Files found:"
+        cat changed.txt || echo "No Python files found."
+
+    - name: Run changed Python files
+      run: |
+        if [ -s changed.txt ]; then
+          while read file; do
+            echo "➡️ Running $file"
+            echo "-----------------------------"
             python "$file"
-            echo "---------------------------------"
-          done
+            echo "-----------------------------"
+          done < changed.txt
+        else
+          echo "✅ No Python files to run."
         fi
