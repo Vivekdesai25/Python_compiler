@@ -13,6 +13,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 2  # Important! Enables git diff to work
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -25,10 +27,14 @@ jobs:
     - name: Find and run changed Python files
       run: |
         echo "Changed Python files:"
-        git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.py$' > changed_files.txt
+        CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep '\.py$' || true)
 
-        while IFS= read -r file; do
-          echo "Running $file"
-          python "$file"
-          echo "---------------------------------"
-        done < changed_files.txt
+        if [ -z "$CHANGED_FILES" ]; then
+          echo "No .py files changed."
+        else
+          echo "$CHANGED_FILES" | while read file; do
+            echo "Running $file"
+            python "$file"
+            echo "---------------------------------"
+          done
+        fi
