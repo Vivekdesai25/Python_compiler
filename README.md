@@ -7,8 +7,11 @@ It's mainly for practice and experimenting with automation.
 Currently using:
 
 1.GitHub Actions
+
 2.Python 3.10
+
 3.Auto-detects changed files using git diff
+
 4.Runs them and shows output in the Actions tab
 
 
